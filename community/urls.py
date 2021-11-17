@@ -9,4 +9,7 @@ urlpatterns = [
     path('<int:review_pk>/', views.detail, name='detail'),
     path('<int:review_pk>/comments/create/', views.create_comment, name='create_comment'),
     path('<int:review_pk>/like/', views.like, name='like'),
+
+    # 20211110 Hastag 기능 추가
+    path('<int:hash_rank>/hashtag/', views.hashtag, name='hashtag'),    
 ]

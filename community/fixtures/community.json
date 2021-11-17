@@ -1,0 +1,34 @@
+[
+{
+    "model": "community.hashtag",
+    "pk": 1,
+    "fields": {
+        "content": "#Ŀ��",
+        "count": 5
+    }
+},
+{
+    "model": "community.hashtag",
+    "pk": 2,
+    "fields": {
+        "content": "#�ܿ�",
+        "count": 3
+    }
+},
+{
+    "model": "community.hashtag",
+    "pk": 3,
+    "fields": {
+        "content": "#����",
+        "count": 1
+    }
+},
+{
+    "model": "community.hashtag",
+    "pk": 4,
+    "fields": {
+        "content": "#��簡���ٶ󸶻�����",
+        "count": 2
+    }
+}
+]

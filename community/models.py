@@ -1,6 +1,13 @@
 from django.db import models
 from django.conf import settings
 
+# 20211110 Hastag 기능 추가
+class Hashtag(models.Model):
+    content = models.TextField(unique=True)
+    count = models.IntegerField()
+
+    def __str__(self):
+        return self.content
 
 class Review(models.Model):
     title = models.CharField(max_length=100)
@@ -11,6 +18,12 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_reviews')
+
+    # 20211110 Hastag 기능 추가
+    hashtags = models.ManyToManyField(Hashtag)
+    
+    # 20211117 조회수 추가
+    # count
 
 
 class Comment(models.Model):

@@ -1,9 +1,12 @@
+from django.db import models
 from django.db.models.query import QuerySet
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_safe
 from django.contrib.auth.decorators import login_required
 from .models import Movie
+from community.models import Hashtag # 2021117 Hashtag로 영화 검색하기
+
 from django.db.models import Max
 import random
 from django.core.paginator import Paginator
@@ -75,6 +78,18 @@ def recommended(request):
         return render(request, 'movies/recommended.html', context)
 
 
+
+
+
+
+# 포스터 이미지 받아오기 - 1. 네이버 API
+NAVER_URL = 'https://openapi.naver.com/v1/search/movie.json'
+CLIENT_SECRET = 'tB6QZ6LzyG'
+CLIENT_ID = 'NhnBdNZiKhE0vPj73Foz'
+# 포스터 이미지 받아오기 - 2. kakao img API
+KAKAO_KEY = '382fa6ad156c258979f116f06f9ceac3'
+KAKAO_URL = 'https://dapi.kakao.com/v2/search/image'
+
 # 1114 - 1. 주간 박스오피스 영화
 def searchWeeklyBoxOfficeMovies(request):
     movies = []
@@ -90,15 +105,7 @@ def searchWeeklyBoxOfficeMovies(request):
     }
     response = requests.get(KOBIS_URL, params).json()
     
-    weeklyBoxOfficeList = response['boxOfficeResult'].get('weeklyBoxOfficeList')
-    
-    # 포스터 이미지 받아오기 - 1. 네이버 API
-    NAVER_URL = 'https://openapi.naver.com/v1/search/movie.json'
-    CLIENT_SECRET = 'tB6QZ6LzyG'
-    CLIENT_ID = 'NhnBdNZiKhE0vPj73Foz'
-    # 포스터 이미지 받아오기 - 2. kakao img API
-    KAKAO_KEY = '382fa6ad156c258979f116f06f9ceac3'
-    KAKAO_URL = 'https://dapi.kakao.com/v2/search/image'
+    weeklyBoxOfficeList = response['boxOfficeResult'].get('weeklyBoxOfficeList')    
         
     for i in range(10):
         movieNm = weeklyBoxOfficeList[i].get('movieNm')
@@ -143,7 +150,50 @@ def searchWeeklyBoxOfficeMovies(request):
 
     response = requests.get('https://api.themoviedb.org/3/movie/popular?api_key=107e0f67f66553e1c7064118ed5abfaa&language=ko-KR&page=1')
     response = response.json().get('results')
+
+    # 2021117 영화 데이터 수집하기
+    # for movie in response:
+
+
     return JsonResponse(response, safe=False)
-    
-    # data = serializers.serialize("json", response)
-    # return HttpResponse(data, content_type="applications/json")
+
+
+
+def searchHashtagMovies(request, hashtag_rank):
+    hashtags = Hashtag.objects.order_by('-count')
+    movies = []
+    if hashtag_rank > len(hashtags):
+        # 에러 
+        data = {'error': f'{hashtag_rank} 랭크의 해시태그가 존재하지 않습니다.'}        
+        return JsonResponse(data, content_type="applications/json", status=400)
+    else:
+        movie_query = hashtags[hashtag_rank-1].content.replace('#', '')
+        # print(movie_query)
+        # 1. 네이버 영화 
+        params = {
+            'query': movie_query,           
+        }
+        headers = {
+            'X-Naver-Client-Id': CLIENT_ID,
+            'X-Naver-Client-Secret': CLIENT_SECRET
+        }
+        response = requests.get(NAVER_URL, headers=headers, params=params).json()
+        movie_cnt = len(response.get('items'))
+        # 검색 결과 없으면 에러
+        if movie_cnt <= 0:
+            data = {'error': f'제목에 #{movie_query}가 들어간 영화가 존재하지 않습니다.'}        
+            return JsonResponse(data, content_type="applications/json", status=400)
+
+        for i in range(movie_cnt):
+            poster_path = response.get('items')[i].get('image')
+            movieNm = response.get('items')[i].get('title').replace('<b>', '').replace('</b>', '')
+            movie = {            
+                'title': movieNm,
+                'poster_path': poster_path,                
+            }
+            movies.append(movie)   
+    results = {'hashtag': movie_query, 'movies': movies} 
+    return JsonResponse(results, safe=False)
+
+
+
