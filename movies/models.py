@@ -17,4 +17,6 @@ class Movie(models.Model):
     poster_path = models.CharField(max_length=200)
     genres = models.ManyToManyField(Genre)
     actors = models.ManyToManyField(Actor)
+    tmdb_id = models.IntegerField(unique=True)
+    director = models.CharField(max_length=50)
 

@@ -1,18 +1,39 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_list_or_404, render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from rest_framework import serializers
+
 from .models import Review, Comment, Hashtag   # 20211110 Hastag 기능 추가
 from .forms import ReviewForm, CommentForm
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .serializers import ReviewistSerializer
 
 
-@require_GET
-def index(request):
-    reviews = Review.objects.order_by('-pk')
-    context = {
-        'reviews': reviews,
-    }
-    return render(request, 'community/index.html', context)
+@api_view(['GET', 'POST'])  # 필수로 decorator 작성해야함
+@permission_classes([AllowAny])
+def index(request):    
+    # 1. 전체 조회
+    if request.method == 'GET':
+        reviews = get_list_or_404(Review)        
+        print(reviews)
+        serializer = ReviewistSerializer(reviews, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        pass
+    
+
+
+
+
+
+
+
+
+
 
 
 @require_http_methods(['GET', 'POST'])

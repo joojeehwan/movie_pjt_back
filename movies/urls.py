@@ -12,5 +12,6 @@ urlpatterns = [
     path('searchHashtagMovies/<int:hashtag_rank>/', views.searchHashtagMovies),
     # 1117 - 3. 영화 세부 정보 검색 
     path('<int:movie_pk>/', views.detail, name='detail'),
+    path('searchTopRatedMovies/', views.searchTopRatedMovies),
     # path('recommended/', views.recommended, name='recommended'),
 ]
