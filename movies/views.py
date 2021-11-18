@@ -46,15 +46,7 @@ def index(request):
 
 
 
-@require_safe
-def detail(request, movie_pk):
-    movie = get_object_or_404(Movie, pk=movie_pk)
-    genres = movie.genres.all() 
-    context = {
-        'movie': movie,
-        'genres': genres,
-    }
-    return render(request, 'movies/detail.html', context)
+
 
 @login_required
 @require_safe
@@ -151,8 +143,21 @@ def searchWeeklyBoxOfficeMovies(request):
     response = requests.get('https://api.themoviedb.org/3/movie/popular?api_key=107e0f67f66553e1c7064118ed5abfaa&language=ko-KR&page=1')
     response = response.json().get('results')
 
-    # 2021117 영화 데이터 수집하기
+    # # 2021117 영화 데이터 수집하기
     # for movie in response:
+    #     data = Movie(
+    #             title = movie.get('title'),
+    #             release_date = movie.get('release_date'),
+    #             popularity = movie.get('popularity'),
+    #             vote_count = movie.get('vote_count'),
+    #             vote_average = movie.get('vote_average'),
+    #             overview = movie.get('overview'),
+    #             poster_path = 'https://image.tmdb.org/t/p/w300/'+movie.get('poster_path'),
+    #             # genres = movie.get('genres'),
+    #             # actors = movie.get('actors')
+    #             )
+
+    #     print(data.title)
 
 
     return JsonResponse(response, safe=False)
@@ -196,4 +201,13 @@ def searchHashtagMovies(request, hashtag_rank):
     return JsonResponse(results, safe=False)
 
 
-
+@require_safe
+def detail(request, movie_pk):
+    movie = get_object_or_404(Movie, pk=movie_pk)
+    genres = movie.genres.all() 
+    print(movie)
+    results = {
+        'movie': movie,        
+        'genres': genres,
+    }
+    return JsonResponse(results, safe=False)

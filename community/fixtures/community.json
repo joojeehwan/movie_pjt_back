@@ -3,7 +3,7 @@
     "model": "community.hashtag",
     "pk": 1,
     "fields": {
-        "content": "#Ŀ��",
+        "content": "#커피",
         "count": 5
     }
 },
@@ -11,7 +11,7 @@
     "model": "community.hashtag",
     "pk": 2,
     "fields": {
-        "content": "#�ܿ�",
+        "content": "#겨울",
         "count": 3
     }
 },
@@ -19,7 +19,7 @@
     "model": "community.hashtag",
     "pk": 3,
     "fields": {
-        "content": "#����",
+        "content": "#나무",
         "count": 1
     }
 },
@@ -27,7 +27,7 @@
     "model": "community.hashtag",
     "pk": 4,
     "fields": {
-        "content": "#��簡���ٶ󸶻�����",
+        "content": "#우루가나다라마사이지",
         "count": 2
     }
 }

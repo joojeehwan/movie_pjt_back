@@ -9,7 +9,8 @@ urlpatterns = [
     path('searchWeeklyBoxOfficeMovies/', views.searchWeeklyBoxOfficeMovies
         , name='searchWeeklyBoxOfficeMovies'),
     # 1117 - 2. 해시태그로 영화 검색
-    path('searchHashtagMovies/<int:hashtag_rank>/', views.searchHashtagMovies)
-    # path('<int:movie_pk>/', views.detail, name='detail'),
+    path('searchHashtagMovies/<int:hashtag_rank>/', views.searchHashtagMovies),
+    # 1117 - 3. 영화 세부 정보 검색 
+    path('<int:movie_pk>/', views.detail, name='detail'),
     # path('recommended/', views.recommended, name='recommended'),
 ]
