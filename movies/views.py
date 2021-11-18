@@ -91,22 +91,32 @@ def saveMovieDatas(request):
         return Response({ 'message': '데이터 등록 완료'})
     
 
-def search(query):
+def search(query, num=1):
     #  admin만 영화 데이터를 등록할 수 있다.(수정하기)
-    response = requests.get(f'https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&language=ko-KR&page=1&include_adult=false&query={movieNm}')
+    response = requests.get(f'https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&language=ko-KR&page=1&include_adult=false&query={query}')
     total_num = response.json().get('total_results')
-    response = response.json().get('results')
-    if total_num > 0:
-        data = response[0]
+    response_data = response.json().get('results')
+    
+    movie = None
+    total_num = min(total_num, num)
+    for i in range(total_num):    
+        data = response_data[i]
+        if Movie.objects.filter(tmdb_id=data.get('id')).count() > 0:
+            continue
+
+        poster = data.get('poster_path')
+        if poster is None:
+            poster = '/'
+        print(poster)
         movie = Movie(
                 tmdb_id = data.get('id'),
                 title = data.get('title'),
-                release_date = data.get('release_date'),
-                popularity = data.get('popularity'),
-                vote_count = data.get('vote_count'),
-                vote_average = data.get('vote_average'),
-                overview = data.get('overview'),
-                poster_path = 'https://image.tmdb.org/t/p/w300/'+data.get('poster_path') 
+                release_date = data.get('release_date') or datetime.date(1999,12,31),
+                popularity = data.get('popularity') or 0,
+                vote_count = data.get('vote_count') or 0,
+                vote_average = data.get('vote_average') or 0,
+                overview = data.get('overview') or 'overview',
+                poster_path = f'https://image.tmdb.org/t/p/w300/{poster}'
                 )
         movie.save()
 
@@ -131,6 +141,7 @@ def search(query):
                 movie.director = crew.get('name')
                 movie.save()                
                 break
+    
     return movie 
 
 # 1114 - 1. 주간 박스오피스 영화
@@ -140,7 +151,7 @@ def searchWeeklyBoxOfficeMovies(request):
 
 
     today = datetime.date.today() - datetime.timedelta(weeks=1)  # 일주일전
-    today = str(today).replace('-','')    
+    today = str(today).replace('-','')        
     params = {
         'key': 'f5eef3421c602c6cb7ea224104795888',
         'targetDt': today,
@@ -183,10 +194,11 @@ def searchHashtagMovies(request, hashtag_rank):
         return JsonResponse(data, content_type="applications/json", status=400)
     else:
         movie_query = hashtags[hashtag_rank-1].content.replace('#', '')
+        search(movie_query, 10)
 
-        movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview_icontains=movie_query))        
-        if movies.count() > 0:
-            for movie in movies:
+        movies_list = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))        
+        if movies_list.count() > 0:
+            for movie in movies_list:
                 movie_data = {                     
                     'title': movie.title,
                     'poster_path': movie.poster_path,     
@@ -194,7 +206,7 @@ def searchHashtagMovies(request, hashtag_rank):
                 }
                 movies.append(movie_data)   
         else:            
-           # 검색 결과 없으면 에러
+           # 검색 결과 없으면 에러            
             data = {'error': f'#{movie_query}와 연관된 영화가 존재하지 않습니다.'}        
             return JsonResponse(data, content_type="applications/json", status=400)
 
@@ -245,3 +257,22 @@ def searchTopRatedMovies(request):
         results.append(movie)       
     return JsonResponse(results, safe=False)
 
+
+
+@api_view(['GET'])  # 필수로 decorator 작성해야함
+@permission_classes([AllowAny])    
+def searchBarMovies(request, movie_query):
+    # movie_query = request.data.get('params')    # 뭐로 넘어올지 
+    movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview_icontains=movie_query))    
+    genres = Genre.objects.filter(name=movie_query)
+    print(genres)
+    actors = Actor.objects.filter(name=movie_query)
+    results = []
+    for movie in movies:
+        movie = {            
+                'title': movie.title,
+                'poster_path': movie.poster_path,     
+                'tmdb_id': movie.tmdb_id 
+            }
+        results.append(movie)       
+    return JsonResponse(results, safe=False)
