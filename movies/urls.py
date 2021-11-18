@@ -13,5 +13,5 @@ urlpatterns = [
     # 1117 - 3. 영화 세부 정보 검색 
     path('<int:movie_pk>/', views.detail, name='detail'),
     path('searchTopRatedMovies/', views.searchTopRatedMovies),
-    # path('recommended/', views.recommended, name='recommended'),
+    path('saveMovieDatas/', views.saveMovieDatas, name='saveMovieDatas'),
 ]

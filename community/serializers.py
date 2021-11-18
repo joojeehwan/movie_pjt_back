@@ -14,7 +14,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'  # 전체 시리얼라이즈
-        read_only_fields = ('article',) # 읽기 전용 필드로 사용자한테 데이터 오는 것 아니므로 나중에 보여지기만 하는 것임을 명시
+        read_only_fields = ('review',) # 읽기 전용 필드로 사용자한테 데이터 오는 것 아니므로 나중에 보여지기만 하는 것임을 명시
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -26,13 +26,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     # comment_set = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     # 2. Nested relationships
-    comment_set = CommentSerializer(many=True, read_only=True)
+    # comment_set = CommentSerializer(many=True, read_only=True)
 
     # 특정 게시글 작성된 댓글 개수 구하기 (article.comment_set.count)
-    comment_count = serializers.IntegerField(source='comment_set.count', read_only=True)
+    # comment_count = serializers.IntegerField(source='comment_set.count', read_only=True)
 
     ## 필드 override 혹은 추가한 경우 'read_only_fields' shortcut사용 할 수 없음
     class Meta:
         model = Review
-        fields = '__all__'  # 전체 시리얼라이즈
+        fields = ('movie_title', 'title', 'content')
 
