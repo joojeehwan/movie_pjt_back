@@ -274,9 +274,6 @@ def searchTopRatedMovies(request):
 @api_view(['GET'])  # 필수로 decorator 작성해야함
 @permission_classes([AllowAny])    
 def searchBarMovies(request, movie_query):
-    print('#######################################')
-    print(movie_query)
-    # movie_query = request.data.get('params')    # 뭐로 넘어올지 
     results = []
     movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))            
     for movie in movies:
@@ -310,5 +307,7 @@ def searchBarMovies(request, movie_query):
                 'tmdb_id': actor_movie.tmdb_id 
                 }
             results.append(actor_movie)
+
+    print(results)
     
     return JsonResponse(results, safe=False)

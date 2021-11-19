@@ -14,5 +14,5 @@ urlpatterns = [
     path('<int:movie_pk>/', views.detail),
     path('searchTopRatedMovies/', views.searchTopRatedMovies),
     path('saveMovieDatas/', views.saveMovieDatas),
-    path('searchBarMovies/<movie_query>', views.searchBarMovies),
+    path('searchBarMovies/<movie_query>/', views.searchBarMovies),
 ]

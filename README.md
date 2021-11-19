@@ -16,3 +16,6 @@
 
    > 한글 incodng이 깨지므로,  메모장으로 열어서 인코딩 utf-8로 변환해서 다시 저장
 
+- endcoding error 발생시
+
+  >  python -Xutf8 manage.py dumpdata --indent 4 movies > movies.json
