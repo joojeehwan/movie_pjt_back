@@ -19,7 +19,7 @@ class Review(models.Model):
     click = models.PositiveIntegerField(default=0) # 20211117 조회수 추가
     hashtags = models.ManyToManyField(Hashtag) # 20211110 Hastag 기능 추가    
 
-    def __str___(self):
+    def __str__(self):
         return self.title
 
 

@@ -4,8 +4,15 @@ from django.db import models
 class Genre(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 class Actor(models.Model):
     name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+    
 
 class Movie(models.Model):
     title = models.CharField(max_length=100)
@@ -19,4 +26,7 @@ class Movie(models.Model):
     actors = models.ManyToManyField(Actor)
     tmdb_id = models.IntegerField(unique=True)
     director = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.title
 

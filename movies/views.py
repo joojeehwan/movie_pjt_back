@@ -1,5 +1,6 @@
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
+from requests.api import post
 
 
 from .serializers import MovieSerializer, MovieListSerializer
@@ -30,7 +31,7 @@ API_KEY = '107e0f67f66553e1c7064118ed5abfaa'
 # 2021117 영화 데이터 수집하기
 #  admin만 영화 데이터를 등록할 수 있다.(수정하기)
 def saveMovieDatas(request):
-    # admin만 영화 데이터를 등록할 수 있다.    
+    #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
     print(request.data.get('id'))
     # if request.data.get('id') == 'admin':
     if True:
@@ -47,23 +48,30 @@ def saveMovieDatas(request):
 
         for movie in response:
             tmdb_id =  movie.get('id')
-            if Movie.objects.filter(tmdb_id=tmdb_id).count() == 0:     
+            if Movie.objects.filter(tmdb_id=tmdb_id).count() == 0:  
+
+                poster = movie.get('poster_path')
+                if poster is None:
+                    poster = 'https://penmadsidrap.com/uploads/blog_image/default.jpg'
+                else:
+                    poster = 'https://image.tmdb.org/t/p/w300/'+poster 
+
                 data = Movie(
                         tmdb_id = movie.get('id'),
                         title = movie.get('title'),
-                        release_date = movie.get('release_date'),
-                        popularity = movie.get('popularity'),
-                        vote_count = movie.get('vote_count'),
-                        vote_average = movie.get('vote_average'),
-                        overview = movie.get('overview'),
-                        poster_path = 'https://image.tmdb.org/t/p/w300/'+movie.get('poster_path') 
+                        release_date = movie.get('release_date') or datetime.date(1999,12,31),
+                        popularity = movie.get('popularity') or 0,
+                        vote_count = movie.get('vote_count') or 0,
+                        vote_average = movie.get('vote_average') or 0,
+                        overview = movie.get('overview') or 'overview...',
+                        poster_path = poster #'https://image.tmdb.org/t/p/w300/'+movie.get('poster_path') 
                         )
                 data.save()
             else:
                 data = Movie.objects.get(tmdb_id=tmdb_id)
-                data.popularity = movie.get('populartiy')
-                data.vote_count = movie.get('vote_count')
-                data.vote_average = movie.get('vote_average')
+                data.popularity = movie.get('populartiy') or 0
+                data.vote_count = movie.get('vote_count') or 0
+                data.vote_average = movie.get('vote_average') or 0
                 data.save()
 
 
@@ -92,7 +100,7 @@ def saveMovieDatas(request):
     
 
 def search(query, num=1):
-    #  admin만 영화 데이터를 등록할 수 있다.(수정하기)
+    #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
     response = requests.get(f'https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&language=ko-KR&page=1&include_adult=false&query={query}')
     total_num = response.json().get('total_results')
     response_data = response.json().get('results')
@@ -106,7 +114,11 @@ def search(query, num=1):
 
         poster = data.get('poster_path')
         if poster is None:
-            poster = '/'
+            poster = 'https://penmadsidrap.com/uploads/blog_image/default.jpg'
+        else:
+            poster = 'https://image.tmdb.org/t/p/w300/'+poster
+
+            
         print(poster)
         movie = Movie(
                 tmdb_id = data.get('id'),
@@ -115,8 +127,8 @@ def search(query, num=1):
                 popularity = data.get('popularity') or 0,
                 vote_count = data.get('vote_count') or 0,
                 vote_average = data.get('vote_average') or 0,
-                overview = data.get('overview') or 'overview',
-                poster_path = f'https://image.tmdb.org/t/p/w300/{poster}'
+                overview = data.get('overview') or 'overview...',
+                poster_path = poster # f'https://image.tmdb.org/t/p/w300/{poster}'
                 )
         movie.save()
 
@@ -169,7 +181,7 @@ def searchWeeklyBoxOfficeMovies(request):
 
         # 없으면 tmdb사용해서 검색
         else:
-            movie = search(movieNm)
+            movie = search(movieNm) #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
             if movie is None: 
                 data = {'message': f'{movieNm}검색결과가 없습니다.'}    
                 return JsonResponse(data, content_type="applications/json", status=400)    
@@ -194,7 +206,7 @@ def searchHashtagMovies(request, hashtag_rank):
         return JsonResponse(data, content_type="applications/json", status=400)
     else:
         movie_query = hashtags[hashtag_rank-1].content.replace('#', '')
-        search(movie_query, 10)
+        search(movie_query, 10) #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
 
         movies_list = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))        
         if movies_list.count() > 0:
@@ -262,12 +274,11 @@ def searchTopRatedMovies(request):
 @api_view(['GET'])  # 필수로 decorator 작성해야함
 @permission_classes([AllowAny])    
 def searchBarMovies(request, movie_query):
+    print('#######################################')
+    print(movie_query)
     # movie_query = request.data.get('params')    # 뭐로 넘어올지 
-    movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview_icontains=movie_query))    
-    genres = Genre.objects.filter(name=movie_query)
-    print(genres)
-    actors = Actor.objects.filter(name=movie_query)
     results = []
+    movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))            
     for movie in movies:
         movie = {            
                 'title': movie.title,
@@ -275,4 +286,29 @@ def searchBarMovies(request, movie_query):
                 'tmdb_id': movie.tmdb_id 
             }
         results.append(movie)       
+    
+    genre_id = Genre.objects.filter(name=movie_query)
+    for g_id in genre_id:  # 어차피 한 개지만 없는 경우 넘어가기 위해서        
+        genre = get_object_or_404(Genre, id=g_id.id)
+        genre_movies = genre.movie_set.filter(genres=genre.id)
+        for genre_movie in genre_movies:
+            genre_movie = {            
+                'title': genre_movie.title,
+                'poster_path': genre_movie.poster_path,     
+                'tmdb_id': genre_movie.tmdb_id 
+                }
+            results.append(genre_movie)
+    
+    actor_id = Actor.objects.filter(name__icontains=movie_query)
+    for a_id in actor_id:  # 어차피 한 개지만 없는 경우 넘어가기 위해서        
+        actor = get_object_or_404(Actor, id=a_id.id)
+        actor_movies = actor.movie_set.filter(actors=actor.id)
+        for actor_movie in actor_movies:
+            actor_movie = {            
+                'title': actor_movie.title,
+                'poster_path': actor_movie.poster_path,     
+                'tmdb_id': actor_movie.tmdb_id 
+                }
+            results.append(actor_movie)
+    
     return JsonResponse(results, safe=False)

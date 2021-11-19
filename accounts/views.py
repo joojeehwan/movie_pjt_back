@@ -48,56 +48,56 @@ def signup(request):
 
 
 
-@require_http_methods(['GET', 'POST'])
-def login(request):
-    if request.user.is_authenticated:
-        return redirect('community:index')
+# @require_http_methods(['GET', 'POST'])
+# def login(request):
+#     if request.user.is_authenticated:
+#         return redirect('community:index')
 
-    if request.method == 'POST':
-        form = AuthenticationForm(request, request.POST)
-        if form.is_valid():
-            auth_login(request, form.get_user())
-            return redirect(request.GET.get('next') or 'community:index')
-    else:
-        form = AuthenticationForm()
-    context = {
-        'form': form,
-    }
-    return render(request, 'accounts/login.html', context)
-
-
-@require_POST
-def logout(request):
-    auth_logout(request)
-    return redirect('community:index')
+#     if request.method == 'POST':
+#         form = AuthenticationForm(request, request.POST)
+#         if form.is_valid():
+#             auth_login(request, form.get_user())
+#             return redirect(request.GET.get('next') or 'community:index')
+#     else:
+#         form = AuthenticationForm()
+#     context = {
+#         'form': form,
+#     }
+#     return render(request, 'accounts/login.html', context)
 
 
-@login_required
-def profile(request, username):
-    person = get_object_or_404(get_user_model(), username=username)
-    context = {
-        'person': person,
-    }
-    return render(request, 'accounts/profile.html', context)
+# @require_POST
+# def logout(request):
+#     auth_logout(request)
+#     return redirect('community:index')
 
 
-@require_POST
-def follow(request, user_pk):
-    if request.user.is_authenticated:
-        person = get_object_or_404(get_user_model(), pk=user_pk)
-        user = request.user
-        if person != user:
-            if person.followers.filter(pk=user.pk).exists():
-                person.followers.remove(user)
-                isFollowed = False
-            else:
-                person.followers.add(user)
-                isFollowed = True
+# @login_required
+# def profile(request, username):
+#     person = get_object_or_404(get_user_model(), username=username)
+#     context = {
+#         'person': person,
+#     }
+#     return render(request, 'accounts/profile.html', context)
+
+
+# @require_POST
+# def follow(request, user_pk):
+#     if request.user.is_authenticated:
+#         person = get_object_or_404(get_user_model(), pk=user_pk)
+#         user = request.user
+#         if person != user:
+#             if person.followers.filter(pk=user.pk).exists():
+#                 person.followers.remove(user)
+#                 isFollowed = False
+#             else:
+#                 person.followers.add(user)
+#                 isFollowed = True
             
-            context = {
-                'isFollowed': isFollowed,
-                'followersCnt': person.followers.count(),
-                'followingsCnt': person.followings.count(),
-            }
-            return JsonResponse(context)
-    return redirect('accounts:profile', person.username)
+#             context = {
+#                 'isFollowed': isFollowed,
+#                 'followersCnt': person.followers.count(),
+#                 'followingsCnt': person.followings.count(),
+#             }
+#             return JsonResponse(context)
+#     return redirect('accounts:profile', person.username)
