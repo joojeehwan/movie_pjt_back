@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Review, Comment, Hashtag   # 20211110 Hastag 기능 추가
-from .serializers import ReviewistSerializer, ReviewSerializer, CommentSerializer
+from .serializers import ReviewListSerializer, ReviewSerializer, CommentSerializer, CommentListSerializer
 
 
 @api_view(['GET', 'POST'])  # 필수로 decorator 작성해야함
@@ -20,16 +20,19 @@ def index(request):
         reviews = Review.objects.order_by('-pk')     
         paginator = Paginator(reviews, 10)
         page_obj = paginator.get_page(page_number)
-        serializer = ReviewistSerializer(page_obj, many=True)        
+        serializer = ReviewListSerializer(page_obj, many=True)        
         # data = serializer.data
         return Response(serializer.data)
 
     # 2. 글 작성    
     elif request.method == 'POST':
         hashtag_list = []
-        serializer = ReviewSerializer(data=request.data)                
+        review = Review()
+        serializer = ReviewSerializer(review, data=request.data)         
         if serializer.is_valid(raise_exception=True):
-            for word in set(serializer.data.get('content').split()):
+            serializer.save(user=request.user)           
+            
+            for word in set(request.data.get('content').split()):                
                 if word[0] == '#':
                      # 2021117 Hashtag 이미 있으면 count 개수 늘리는 로직 추가
                     hashtag, created = Hashtag.objects.get_or_create(content=word)
@@ -37,15 +40,14 @@ def index(request):
                         hashtag.count += 1
                         hashtag.save()
                                         
-                    hashtag_list.append(hashtag.content)               
-            
-            serializer.save(user=request.user)#, hashtag=hashtag_list)    ## 되나 확인하기!!!!!!!!!!!!!!!
+                    hashtag_list.append(hashtag)               
+            review.hashtags.set(hashtag_list)            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'DELETE', 'PUT'])
 @permission_classes([AllowAny])
-def detail(request, review_pk):
+def detail(request, review_pk):   
     review = get_object_or_404(Review, pk=review_pk)
 
     if request.method == 'GET':
@@ -54,11 +56,18 @@ def detail(request, review_pk):
         serializer = ReviewSerializer(review)
         return Response(serializer.data)
 
-    elif request.method == 'DELELTE':
+    elif request.method == 'DELETE':
+        # review의 해시태그도 삭제
+        for hashtag in review.hashtags.all():
+            hashtag.count -= 1
+            hashtag.save()
+            if hashtag.count == 0:
+                hashtag.delete()
+        
         review.delete()
         data = {
             'delete': f'데이터 {review_pk}번이 삭제되었습니다.'
-        }
+        }        
         return Response(data, status=status.HTTP_204_NO_CONTENT)
 
     elif request.method == 'PUT':
@@ -66,7 +75,15 @@ def detail(request, review_pk):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             # 20211110 Hastag 기능 추가
+            # hashtag 테이블에서도 삭제하기                 
+                    # review의 해시태그도 삭제
+            for hashtag in review.hashtags.all():
+                hashtag.count -= 1
+                hashtag.save()
+                if hashtag.count == 0:
+                    hashtag.delete()
             review.hashtags.clear()    # 지우고 새로 등록
+
             for word in review.content.split():                
                 if word[0] == '#':
                     # 2021117 Hashtag 이미 있으면 count 개수 늘리는 로직 추가
@@ -94,16 +111,20 @@ def hashtag(request, hash_pk):
 # 댓글 조회, 생성
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
-def comment_index(request, review_pk):
+def comment_index(request, review_pk):    
+    print(request.method)
     review = get_object_or_404(Review, pk=review_pk)
     if request.method == 'GET':
-        comments = Comment.objects.filter(review_pk=review_pk).order_by('-pk')
-        serializer = CommentSerializer(comments, many=True)
+        comments = Comment.objects.filter(review_id=review_pk).order_by('-pk')
+        
+        serializer = CommentListSerializer(comments, many=True)
+        print(serializer)
         return Response(serializer.data)
     
     elif request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid(raise_exception=True):            
+            print('****************************************')
             serializer.save(user=request.user, review=review)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

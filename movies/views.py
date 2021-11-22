@@ -306,8 +306,16 @@ def searchBarMovies(request, movie_query):
                 'poster_path': actor_movie.poster_path,     
                 'tmdb_id': actor_movie.tmdb_id 
                 }
-            results.append(actor_movie)
-
-    print(results)
+            results.append(actor_movie)   
     
     return JsonResponse(results, safe=False)
+
+
+@api_view(['GET'])  # 필수로 decorator 작성해야함
+@permission_classes([AllowAny])    
+def searchAllMovies(request):
+    movies = Movie.objects.all().values('title')    
+
+    return JsonResponse(list(movies), safe=False)
+
+

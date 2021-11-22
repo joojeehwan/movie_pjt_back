@@ -15,4 +15,7 @@ urlpatterns = [
     path('searchTopRatedMovies/', views.searchTopRatedMovies),
     path('saveMovieDatas/', views.saveMovieDatas),
     path('searchBarMovies/<movie_query>/', views.searchBarMovies),
+    # 1122 전체 영화 리스트 검색
+    path('searchAllMovies/', views.searchAllMovies),
+
 ]
