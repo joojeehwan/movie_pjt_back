@@ -18,6 +18,7 @@ class Review(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     click = models.PositiveIntegerField(default=0) # 20211117 조회수 추가
     hashtags = models.ManyToManyField(Hashtag) # 20211110 Hastag 기능 추가    
+    rank = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

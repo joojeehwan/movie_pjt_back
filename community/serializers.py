@@ -41,5 +41,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     ## 필드 override 혹은 추가한 경우 'read_only_fields' shortcut사용 할 수 없음
     class Meta:
         model = Review
-        fields = ('movie_title', 'title', 'content')
+        fields = ('movie_title', 'title', 'content', 'user', 'rank')
+        read_only_fields = ('user',)
 

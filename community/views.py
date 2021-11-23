@@ -40,7 +40,8 @@ def index(request):
                         hashtag.count += 1
                         hashtag.save()
                                         
-                    hashtag_list.append(hashtag)               
+                    hashtag_list.append(hashtag)  
+                    print(hashtag_list)             
             review.hashtags.set(hashtag_list)            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -50,49 +51,61 @@ def index(request):
 def detail(request, review_pk):   
     review = get_object_or_404(Review, pk=review_pk)
 
-    if request.method == 'GET':
-        review.click += 1
-        review.save()
-        serializer = ReviewSerializer(review)
+    if request.method == 'GET':        
+        review.click += 1        
+        review.save()        
+        serializer = ReviewSerializer(review)        
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
-        # review의 해시태그도 삭제
-        for hashtag in review.hashtags.all():
-            hashtag.count -= 1
-            hashtag.save()
-            if hashtag.count == 0:
-                hashtag.delete()
-        
-        review.delete()
-        data = {
-            'delete': f'데이터 {review_pk}번이 삭제되었습니다.'
-        }        
-        return Response(data, status=status.HTTP_204_NO_CONTENT)
-
-    elif request.method == 'PUT':
-        serializer = ReviewSerializer(review, data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            # 20211110 Hastag 기능 추가
-            # hashtag 테이블에서도 삭제하기                 
-                    # review의 해시태그도 삭제
+        if request.user == review.user:
+            # review의 해시태그도 삭제
             for hashtag in review.hashtags.all():
                 hashtag.count -= 1
                 hashtag.save()
                 if hashtag.count == 0:
                     hashtag.delete()
-            review.hashtags.clear()    # 지우고 새로 등록
+            
+            review.delete()
+            data = {
+                'delete': f'데이터 {review_pk}번이 삭제되었습니다.'
+            }        
+            return Response(data, status=status.HTTP_204_NO_CONTENT)
+        
+        data = {
+        'Unauthorized': '권한이 없습니다.'
+        }
+        return Response(data, status=status.HTTP_403_FORBIDDEN)
+        
 
-            for word in review.content.split():                
-                if word[0] == '#':
-                    # 2021117 Hashtag 이미 있으면 count 개수 늘리는 로직 추가
-                    hashtag, created = Hashtag.objects.get_or_create(content=word)
-                    if created is False:
-                        hashtag.count += 1
-                        hashtag.save()
-                    review.hashtags.add(hashtag)
-            return Response(serializer.data)    # 200으로 return
+    elif request.method == 'PUT':
+        if request.user == review.user:
+            serializer = ReviewSerializer(review, data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                # 20211110 Hastag 기능 추가
+                # hashtag 테이블에서도 삭제하기                 
+                        # review의 해시태그도 삭제
+                for hashtag in review.hashtags.all():
+                    hashtag.count -= 1
+                    hashtag.save()
+                    if hashtag.count == 0:
+                        hashtag.delete()
+                review.hashtags.clear()    # 지우고 새로 등록
+
+                for word in review.content.split():                
+                    if word[0] == '#':
+                        # 2021117 Hashtag 이미 있으면 count 개수 늘리는 로직 추가
+                        hashtag, created = Hashtag.objects.get_or_create(content=word)
+                        if created is False:
+                            hashtag.count += 1
+                            hashtag.save()
+                        review.hashtags.add(hashtag)
+                return Response(serializer.data)    # 200으로 return
+        data = {
+        'Unauthorized': '권한이 없습니다.'
+        }
+        return Response(data, status=status.HTTP_403_FORBIDDEN)
 
 
 # 20211110 Hastag 기능 추가
@@ -111,8 +124,7 @@ def hashtag(request, hash_pk):
 # 댓글 조회, 생성
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
-def comment_index(request, review_pk):    
-    print(request.method)
+def comment_index(request, review_pk):        
     review = get_object_or_404(Review, pk=review_pk)
     if request.method == 'GET':
         comments = Comment.objects.filter(review_id=review_pk).order_by('-pk')
@@ -134,9 +146,7 @@ def comment_index(request, review_pk):
 @permission_classes([AllowAny])
 def comment_detail(request,comment_pk):
     comment = get_object_or_404(Comment, pk=comment_pk)
-    print(comment_pk)
-    print(request.user)
-    print('##########################')
+
     if request.user == comment.user:
         if request.method == 'DELETE':
             comment.delete()
