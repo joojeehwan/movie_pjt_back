@@ -11,6 +11,7 @@ class ReviewListSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'movie_title','click', 'created_at')
 
 class CommentListSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Comment
         fields = '__all__'
@@ -19,7 +20,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('content', 'review')  # 전체 시리얼라이즈
+        fields = ('id', 'review', 'content', 'user')#('content', 'review')  # 전체 시리얼라이즈
         read_only_fields = ('review',) # 읽기 전용 필드로 사용자한테 데이터 오는 것 아니므로 나중에 보여지기만 하는 것임을 명시
 
 

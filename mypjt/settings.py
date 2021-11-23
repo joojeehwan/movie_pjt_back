@@ -30,8 +30,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
-    'todos',
+INSTALLED_APPS = [    
     'accounts',
     'community',
     'movies',

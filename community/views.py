@@ -117,15 +117,15 @@ def comment_index(request, review_pk):
     if request.method == 'GET':
         comments = Comment.objects.filter(review_id=review_pk).order_by('-pk')
         
-        serializer = CommentListSerializer(comments, many=True)
-        print(serializer)
+        serializer = CommentListSerializer(comments, many=True)        
         return Response(serializer.data)
     
     elif request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):            
-            print('****************************************')
+        if serializer.is_valid(raise_exception=True):                        
             serializer.save(user=request.user, review=review)
+            print('##########################')
+            print(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -134,6 +134,9 @@ def comment_index(request, review_pk):
 @permission_classes([AllowAny])
 def comment_detail(request,comment_pk):
     comment = get_object_or_404(Comment, pk=comment_pk)
+    print(comment_pk)
+    print(request.user)
+    print('##########################')
     if request.user == comment.user:
         if request.method == 'DELETE':
             comment.delete()
