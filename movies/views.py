@@ -314,8 +314,10 @@ def searchBarMovies(request, movie_query):
 @api_view(['GET'])  # 필수로 decorator 작성해야함
 @permission_classes([AllowAny])    
 def searchAllMovies(request):
-    movies = Movie.objects.all().values('title')    
-
-    return JsonResponse(list(movies), safe=False)
+    movies = Movie.objects.all()
+    
+    serializer = MovieListSerializer(movies, many=True)        
+    return Response(serializer.data)
+    # return JsonResponse(list(movies), safe=False)
 
 

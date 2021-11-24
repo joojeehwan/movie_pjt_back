@@ -44,7 +44,7 @@ def signup(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(['POST'])
+@api_view(['GET'])  # 수정하기
 @permission_classes([AllowAny])
 def getuserlist(request):
     users = User.objects.all()
