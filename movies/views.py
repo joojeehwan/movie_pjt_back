@@ -1,8 +1,6 @@
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
 from requests.api import post
-
-
 from .serializers import MovieSerializer, MovieListSerializer
 from .models import Actor, Genre, Movie
 from community.models import Hashtag # 2021117 Hashtag로 영화 검색하기
@@ -14,16 +12,8 @@ import datetime
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+import random
 
-
-# 포스터 이미지 받아오기 - 1. 네이버 API
-NAVER_URL = 'https://openapi.naver.com/v1/search/movie.json'
-CLIENT_SECRET = 'tB6QZ6LzyG'
-CLIENT_ID = 'NhnBdNZiKhE0vPj73Foz'
-# 포스터 이미지 받아오기 - 2. kakao img API
-KAKAO_KEY = '382fa6ad156c258979f116f06f9ceac3'
-KAKAO_URL = 'https://dapi.kakao.com/v2/search/image'
-#
 API_KEY = '107e0f67f66553e1c7064118ed5abfaa'
 
 @api_view(['GET'])
@@ -117,9 +107,7 @@ def search(query, num=1):
             poster = 'https://penmadsidrap.com/uploads/blog_image/default.jpg'
         else:
             poster = 'https://image.tmdb.org/t/p/w300/'+poster
-
-            
-        print(poster)
+        
         movie = Movie(
                 tmdb_id = data.get('id'),
                 title = data.get('title'),
@@ -206,10 +194,13 @@ def searchHashtagMovies(request, hashtag_rank):
         return JsonResponse(data, content_type="applications/json", status=400)
     else:
         movie_query = hashtags[hashtag_rank-1].content.replace('#', '')
-        search(movie_query, 10) #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
+        # search(movie_query, 10) #  admin만 영화 데이터를 등록할 수 있어야 한다.(수정하기)
 
         movies_list = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))        
         if movies_list.count() > 0:
+            movie_count = min(movies_list.count(), 10)
+            # print(random.sample(list(movies_list), movie_count))
+            movies_list = random.sample(list(movies_list), movie_count)
             for movie in movies_list:
                 movie_data = {                     
                     'title': movie.title,
@@ -275,20 +266,30 @@ def searchTopRatedMovies(request):
 @permission_classes([AllowAny])    
 def searchBarMovies(request, movie_query):
     results = []
+    check_list = [] # 중복 체크용
     movies = Movie.objects.filter(Q(title__icontains=movie_query)|Q(overview__icontains=movie_query))            
     for movie in movies:
+        if movie.tmdb_id in check_list:
+            continue
+        check_list.append(movie.tmdb_id)
+
         movie = {            
                 'title': movie.title,
                 'poster_path': movie.poster_path,     
                 'tmdb_id': movie.tmdb_id 
             }
         results.append(movie)       
+        
     
     genre_id = Genre.objects.filter(name=movie_query)
     for g_id in genre_id:  # 어차피 한 개지만 없는 경우 넘어가기 위해서        
         genre = get_object_or_404(Genre, id=g_id.id)
         genre_movies = genre.movie_set.filter(genres=genre.id)
         for genre_movie in genre_movies:
+            if genre_movie.tmdb_id in check_list:
+                continue
+            check_list.append(genre_movie.tmdb_id)
+
             genre_movie = {            
                 'title': genre_movie.title,
                 'poster_path': genre_movie.poster_path,     
@@ -300,13 +301,17 @@ def searchBarMovies(request, movie_query):
     for a_id in actor_id:  # 어차피 한 개지만 없는 경우 넘어가기 위해서        
         actor = get_object_or_404(Actor, id=a_id.id)
         actor_movies = actor.movie_set.filter(actors=actor.id)
-        for actor_movie in actor_movies:
+        for actor_movie in actor_movies:            
+            if actor_movie.tmdb_id in check_list:                
+                continue
+            check_list.append(actor_movie.tmdb_id)
+
             actor_movie = {            
                 'title': actor_movie.title,
                 'poster_path': actor_movie.poster_path,     
                 'tmdb_id': actor_movie.tmdb_id 
                 }
-            results.append(actor_movie)   
+            results.append(actor_movie)                       
     
     return JsonResponse(results, safe=False)
 
@@ -315,7 +320,7 @@ def searchBarMovies(request, movie_query):
 @permission_classes([AllowAny])    
 def searchAllMovies(request):
     movies = Movie.objects.all()
-    
+
     serializer = MovieListSerializer(movies, many=True)        
     return Response(serializer.data)
     # return JsonResponse(list(movies), safe=False)

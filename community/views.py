@@ -40,8 +40,7 @@ def index(request):
                         hashtag.count += 1
                         hashtag.save()
                                         
-                    hashtag_list.append(hashtag)  
-                    print(hashtag_list)             
+                    hashtag_list.append(hashtag)                                 
             review.hashtags.set(hashtag_list)            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -136,8 +135,6 @@ def comment_index(request, review_pk):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):                        
             serializer.save(user=request.user, review=review)
-            print('##########################')
-            print(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
