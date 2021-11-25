@@ -190,7 +190,27 @@ Login 화면 하단 Signup 링크를 통해 Signup 화면으로 이동 할 수 �
 
   - 그동안 수업 시간에 했던 프로젝트들이 다 내것이 아니었다는 것을 뼈저리게 깨닫게 되었습니다. :sweat:  
 
-    그동안의 프로젝트들을 합치면 쉽게 완성될 것이라 생각했었는데 실제로 
+    그동안의 프로젝트들을 합치면 쉽게 완성될 것이라 생각했었는데 실제로 원하는 부분을 modify하며 진행하다보니 잘 안 되는 것 투성이였습니다. 
+
+    특히 `serializer` !!  뭔가 넣기만 하면 자동으로 짠하고 되어서 쉬울 것 같았는데, 잘 안 되서 처음 작성했던 부분인 `movies` 관련 부분은 대부분 리스트 형태로 수작업 하여 `JsonResponse`로 데이터를 전송하였습니다. 
+
+    추후 `community`부분을 serializer로 작성하며 이럴 때 serializer를 쓰면 편리하구나를 깨달았습니다. :smiley: 
+
+  - bootstrap외에도 다양한 module들을 사용하며 module의 편리함과 어려움에 대해 동시에 느꼈습니다... 홈화면의 영화를 멋지게 보여주는 부분을 구성하며, `vue-slick`을 사용하였는데 친절한 설명과 함께 다양한 option들을 통해 쉽게 영화 리스트를 넘어가는 모양을 만들었지만, 해당 영화 이미지를 선택 시 디테일 화면의 위치가 이상하게 고정되어 하루동안 원인을 분석하였습니다. 
+
+    수업시간에 배운 개발자 툴들이 유용하게 사용되어 `vue-slick`의 `transform` 속성으로 내부 카드 이미지 컴포넌트의 위치가 고정되었음을 알게되었습니다. 하지만 transform 속성을 무력화시키면 영화 리스트를 움직이게 만들 수 없어서, 상단에 안 보이는 곳에 사용하지 않을 vue-slick 하나를 생성하여 transform 속성을 none으로 설정하여 문제를 해결하였습니다. :smile: 
+
+  - 아무거나 가져다 사용하면 그게 다 내것이 아니고 더 큰 탈이 난다는 것을 깨달았습니다. :dizzy_face:  
+
+    인터넷을 통해 이미 많은 소스들이 있기에 멋져보이는 소스를 가져다 사용하면 쉽게 화면 구성이 완성 될 줄 알았는데,,, 오히려 기본 component들이 자유도가 높아 설정하는데는 더 쉬웠던 것 같습니다. 잘 모르는 소스를 가져다 사용하면 프로젝트 전체에 영향을 끼칠 수도 있기에 !!! (다른 파일의 style 속성이 전체로 설정되어있으면서 `#app`에 대해 건들이는 부분이 있어서 화면 구성이 갑자기 변경되어서 당황한 적이있었습니다.  :woman_facepalming: ) 
+
+  - 인증부분에 대해 잘 모르고 프로젝트를 진행한 것 같아 아쉬움이 남습니다. 그저 Login 수업 시간에 배운 부분을 복사 붙여넣기 한 것 같습니다. 인증에 대해 제대로 이해해야겠다고 깨달았습니다. 
+
+  
+
+  
+
+  
 
   
 
@@ -199,57 +219,4 @@ Login 화면 하단 Signup 링크를 통해 Signup 화면으로 이동 할 수 �
 
 
 
-
-1. M대N관계 :dizzy_face:
-
-   
-
-   
-
-2. 또 Movie detail 화면...  :woman_facepalming:   포스터 이미지를 보여주는 부분에서 이전에 배웠던 것들이 혼합되면서 static 디렉토리를 설정해야 하는 것인지 강아지 이미지 불러왔던 것 처럼 하면 될 것 같은데, 허둥지둥하다가 profile에서 userid를 받아오는 부분과 유사하게, movie에 담겨온 poster_path를 받아 img src속성에 넣어 출력하였습니다.
-
-   - `movies/detail.html`
-
-     ```javascript
-     {% block script %}
-     <script>
-       {% comment %} const imgSrc = document.querySelector() {% endcomment %}
-       const post = document.querySelector('#post')
-       const path = post.dataset.posterpath   
-       console.log(path)
-       const ImgTag = document.querySelector('img')
-       ImgTag.setAttribute('src', path)   
-       
-     </script>
-     {% endblock script %}
-     ```
-
-3. recommend 부분에서 random하게 10개를 보낼 것인데, `어떻게 random하게` 할 것인지...
-
-   처음에 당연히  `lodash`만 생각하고 있었는데, `pair`님의 python의 random모듈을 사용하자는 의견에 그런방법도 있구나! 했는데, `movie.objects.all()`은 list가 아니라 random.sample이 안 되었습니다... 각자 방법을 찾는 중 저는 전체 movie 데이터를 list로 형변환 하는 방법을 생각했는데, `pair`분께서 aggregate를 사용하는 방법을 말씀하셔서, 연습겸 해당 방법을 통해 random하게 10개를 추출하였습니다.
-
-   ```python
-   @login_required
-   @require_safe
-   def recommended(request):    
-       if request.user.is_authenticated:
-           recommendMovies = set()
-           # 전체 영화 목록에서 random 10개 추출
-           while True:
-               if len(recommendMovies) == 10:
-                   break
-               max_id = Movie.objects.all().aggregate(max_id=Max('id'))["max_id"]
-               pk = random.randint(1, max_id)
-               recommendMovies.add(Movie.objects.get(pk=pk))
-           context = {
-               'recommendMovies': recommendMovies
-   
-           }
-           # movies = list(Movie.objects.all())        
-           # recommendMovies = random.sample(movies, 10)        
-          
-           return render(request, 'movies/recommended.html', context)s
-   ```
-
-   
 
