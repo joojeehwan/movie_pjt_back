@@ -18,9 +18,41 @@
 - 프로젝트 포함 fixture
 
   - accounts : admin-admin
-
   - community
-  -  movies
+  - movies
+
+
+
+# :notebook:  프로젝트 실행순서
+
+## 💥back 실행 순서
+
+1. `python -m venv venv`
+
+2. `ctrt+shift+p` 단축키 실행 => 가상환경 적용
+
+3. `source/venv/Scripts/activate` 가상환경 실행
+
+4. `pip install -r requirements.txt`
+
+5. `python manage.py migrate`
+
+   **<loaddata의 경우 아래의 account의 fixtures를 먼저 load한 후에 community의fixtures를 load 할것>**
+
+6. `python manage.py loaddata movies.json`
+
+7. `python manage.py loaddata accounts.json`
+
+8. `python manage.py loaddata community.json`
+
+9. `python manage.py runserver`
+
+
+
+## 💥front 실행 순서
+
+1. npm i
+2. npm run serve
 
 
 
@@ -207,6 +239,46 @@ Login 화면 하단 Signup 링크를 통해 Signup 화면으로 이동 할 수 �
   - 인증부분에 대해 잘 모르고 프로젝트를 진행한 것 같아 아쉬움이 남습니다. 그저 Login 수업 시간에 배운 부분을 복사 붙여넣기 한 것 같습니다. 인증에 대해 제대로 이해해야겠다고 깨달았습니다. 
 
   
+
+- 주지환
+
+  **<구현하려 했지만 못했던 것,,>**
+
+  1. **커뮤니티에 있는 게시글에 textarea의 readonly 속성을 버튼 조작을 통해서 true -> false로 바꾸기**
+
+  
+
+  => 지금의 커뮤니티 게시판의 게시글들은 내가 작성한 것이 아니라면 수정/삭제가 불가능하게 서버(django)에서 클라이언트(vue)에서 모두 막고 있습니다. 그러나 게시글의 수정을 위해서 textarea의 readonly 속성의 기본값을 false로 지정해두어서, 실제로 DB에 수정이나 삭제를 요청해도 403 에러를 만나고, 내가 작성한 게시글이나 댓글이 아니라면 수정/삭제 버튼도 뜨지 않지만 화면에 출력이 되는 부분은 자유롭게 변경이 가능합니다. 이러한 부분을 method를 통해 함수를 만들어서 button을 통해 readonly 속성을 바꾸게 하려 했지만 시간이 부족해 구현하지 못하였습니다.  
+
+  
+
+  2. **MovieCard backgound image 넣기**
+
+     
+
+  => MovieCard에서 배경화면으로 포스터의 이미지를 투명하게 해서 넣고 싶었습니다.  그러나 vuetufy를 활용한 v-dialog fullscreen을 사용해서 그런지 포스터의 이미지가 꺠져 보였고, 투명하게 하더라도 텍스트를 읽는데 조금 산만해 보였습니다. 그래서 기존의 검은색 화면이 낫다고 판단하고 개발을 중지 하였습니다.
+
+  
+
+  **<어려웠던 점>**
+
+  1. **익숙하지 않은 vue 프레임워크**
+
+  => vue에 익숙하지 못해서 초반에 vue를 다시 공부하느라 애를 좀 먹었습니다. 그치만 vue는 기본적으로 공식문서가 한글지원이 너무 잘되어있고, 페이지도 보기 좋아서 훨씬 더 수월하게 할 수 있었습니다. 그래도 부족한 점이 있었다면, vue관련 서적을 구매해서 공부하고, 구글검색을 통해서 채워나갔습니다. 백번 머리로 이해하는 것보다 이렇게 직접 프로젝트를 하면서 오류를 만나면서 vue 배우게 되어서 단기간에 실력이 늘 수 있었던것 같습니다. 
+
+  
+
+  2. **끝까지 발목을 잡았던 댓글 crud**
+
+  
+
+  => 이번 프로젝트를 진행하면서 가장 골치 아팠던 부분은 community의 기능 중 하나인 댓글의 crud부분 이었습니다. vuex를 활용해서 사용한 로직은 문제가 없었지만, commentList에서 v-for를 통해서 commentListItem으로 데이터 props를 하는 과정에서 key값을 그냥 idx로 지정해서 발생하는 오류 떄문에 참으로 오랜시간을 디버깅 했습니다. idx로 key값을 주었을 때는 댓글의 삭제시에 idx가 key값으로서 기능을 하지 못하여서 내가 삭제하려 했던 댓글을 지우는 것이 아니라 다른 댓글을 삭제 하는 오류가 발생했습니다. 이 부분을 인지하고 key의 값으로 comment마다 존재하는 고유한 `comment.id`의 값으로 수정하니 기존에 발생했던 오류가 해결되었습니다. 댓글이 삭제되면 emit을 통해서 상위 컴포넌트에 알리고 다시 댓글 목록을 조회하는 logic도 처음엔 헷갈렸지만 지금은 이해가 됩니다. 
+
+  
+
+  3. **디자인은 어렵다**
+
+  => 프로젝트를 시작하면서 디자인은 한 이틀이면 하지 않을까?! 라는 생각을 가지고 있었습니다. 기능 보다 쉽게 할 수 있을거라는 제 오만한 착각이었습니다. 최종 pj 이전에 pjt 들에서는 기능 구현에만 신경쓰고 디자인 적인 부분은 잘 하지 않아서 이번 최종 pjt를 하면서 디자인 부분이 정말 까다로웠습니다. 구글링을 통해 vuetify를 찾게 되고, 다른 여러 디자인 라이브러리를 검색해서 구현 한것도 큰 수확이었습니다. 앞으로 html, css부분을 방학에 클론 프로젝트를 하면서 다시금 공부해야 할 것 같습니다. 
 
   
 
