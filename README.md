@@ -24,7 +24,7 @@
 
 
 
-# :facepunch:  프로젝트 목표
+#  :facepunch: 프로젝트 목표
 
 **`Hashtag`에 기반한 영화 추천 서비스** !
 
