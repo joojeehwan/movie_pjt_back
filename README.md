@@ -19,3 +19,13 @@
 - endcoding error 발생시
 
   >  python -Xutf8 manage.py dumpdata --indent 4 movies > movies.json
+
+
+
+
+
+-----------------
+
+1. ERD
+2. DB fixtures 만들기
+3. 
