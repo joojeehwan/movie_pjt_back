@@ -126,7 +126,7 @@ def hashtag(request, hash_pk):
 def comment_index(request, review_pk):        
     review = get_object_or_404(Review, pk=review_pk)
     if request.method == 'GET':
-        comments = Comment.objects.filter(review_id=review_pk).order_by('-pk')
+        comments = Comment.objects.filter(review_id=review_pk).order_by('pk')
         
         serializer = CommentListSerializer(comments, many=True)        
         return Response(serializer.data)
